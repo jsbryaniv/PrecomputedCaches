@@ -1,0 +1,4 @@
+name = "PrecomputedCaches"
+uuid = "0d25abdb-891b-480f-b2a6-b2a9005ed07c"
+authors = ["Shep Bryan IV <jsbryan4@asu.edu> and contributors"]
+version = "0.1.0"
