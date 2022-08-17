@@ -1,10 +1,10 @@
 
 module PrecomputedCaches
 
-export Precomputed
+export PrecomputedCache
 
 using HDF5
 
-include("precomputed.jl")
+include("precomputedcache.jl")
 
 end

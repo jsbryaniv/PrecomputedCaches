@@ -80,13 +80,13 @@ end
 
 
 ### Precomputed ###
-mutable struct Precomputed
+mutable struct PrecomputedCache
     name::String
     path::String
     save::Function
     load::Function
     verbose::Bool
-    function Precomputed(name, parameters=nothing; path=nothing, verbose=false)
+    function PrecomputedCache(name, parameters=nothing; path=nothing, verbose=false)
 
         # Set up name
         if parameters !== nothing
