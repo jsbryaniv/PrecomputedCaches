@@ -1,11 +1,46 @@
 
+## Generate save name from parameters ##
+function get_savename(basename; parameters=Dict([]), kwargs...)
+
+    # Merge parameters with keyword arguments
+    parameters = merge(
+        deepcopy(parameters), 
+        Dict([(String(key), val) for (key, val) in kwargs])
+    )
+
+    # Greate suffix from parameters
+    suffix = ""
+    for (key, val) in sort(collect(parameters), by=q->q[1])
+        (val === nothing) || (val == false) ? continue : nothing
+        key_str = replace(key,"_"=>"")
+        if isa(val, String)
+            val_str = val
+        else
+            val_str = join(val,"X")
+        end
+        suffix = "$(suffix)_$(key_str)=$(val_str)"
+    end
+
+    # Add suffix to name
+    name = basename
+    if length(suffix) > 0
+        name = name * suffix
+    end
+
+    # Return name
+    return name
+end
+
 ## Define save function ##
-function precomputed_save(self, matrix, matrixname)
+function precomputed_save(self, matrix, matrixname; parameters=Dict([]), kwargs...)
             
     # Get atributes
     name = self.name
     path = self.path
     verbose = self.verbose
+
+    # Set up savename
+    name = get_savename(name, parameters=parameters, kwargs...)
 
     # Check if directory exists
     if !(name in readdir(path))
@@ -37,12 +72,15 @@ function precomputed_save(self, matrix, matrixname)
 end
 
 ## Define load function ##
-function precomputed_load(self, matrixname)
+function precomputed_load(self, matrixname; parameters=Dict([]), kwargs...)
     
     # Get attributes
     path = self.path
     name = self.name
     verbose = self.verbose
+
+    # Set up savename
+    name = get_savename(name, parameters=parameters, kwargs...)
     
     # Check if matrix is in path
     matrix = nothing
@@ -86,17 +124,10 @@ mutable struct PrecomputedCache
     save::Function
     load::Function
     verbose::Bool
-    function PrecomputedCache(name, parameters=nothing; path=nothing, verbose=false)
+    function PrecomputedCache(name; path=nothing, verbose=false, parameters=Dict([]), kwargs...)
 
         # Set up name
-        if parameters !== nothing
-            suffix = ""
-            for (key, val) in sort(collect(parameters), by=q->q[1])
-                (val === nothing) || (val == false) ? continue : nothing
-                suffix = "$(suffix)_$(replace(key,"_"=>""))=$(join(val,"X"))"
-            end
-            name = name * suffix
-        end
+        name = get_savename(name, parameters=parameters, kwargs...)
 
         # Set up path
         if path === nothing
@@ -117,11 +148,11 @@ mutable struct PrecomputedCache
         self.name = name
         self.path = path
         self.verbose = verbose
-        self.save = function (matrix, matrixname)
-            precomputed_save(self, matrix, matrixname)
+        self.save = function (matrix, matrixname; parameters=Dict([]), kwargs...)
+            precomputed_save(self, matrix, matrixname; parameters=parameters, kwargs...)
         end
-        self.load = function (matrixname)
-            precomputed_load(self, matrixname)
+        self.load = function (matrixname; parameters=Dict([]), kwargs...)
+            precomputed_load(self, matrixname; parameters=parameters, kwargs...)
         end
 
         return self
