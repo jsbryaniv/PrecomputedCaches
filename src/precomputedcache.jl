@@ -127,7 +127,7 @@ mutable struct PrecomputedCache
     function PrecomputedCache(name; path=nothing, verbose=false, parameters=Dict([]), kwargs...)
 
         # Set up name
-        name = get_savename(name, parameters=parameters, kwargs...)
+        name = get_savename(name; parameters=parameters, kwargs...)
 
         # Set up path
         if path === nothing
