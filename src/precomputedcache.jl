@@ -53,13 +53,21 @@ function precomputed_save(self, matrix, matrixname; parameters=Dict([]), kwargs.
     fid["type"] = string(typeof(matrix))
     if issparse(matrix)
         # If matrix is sparse then save as sparse matrix
-        rows, cols, vals = findnz(sparse(matrix))
-        nrows, ncols = size(matrix)
-        fid["rows"] = rows
-        fid["cols"] = cols
-        fid["vals"] = vals
-        fid["nrows"] = nrows
-        fid["ncols"] = ncols
+        if ndims(matrix) == 1
+            rows, vals = findnz(sparsevec(matrix))
+            nrows = length(matrix)
+            fid["rows"] = rows
+            fid["vals"] = vals
+            fid["nrows"] = nrows
+        else
+            rows, cols, vals = findnz(sparse(matrix))
+            nrows, ncols = size(matrix)
+            fid["rows"] = rows
+            fid["cols"] = cols
+            fid["vals"] = vals
+            fid["nrows"] = nrows
+            fid["ncols"] = ncols
+        end
     else
         # If matrix is dense then save as dense matrix
         fid["matrix"] = matrix
@@ -98,13 +106,20 @@ function precomputed_load(self, matrixname; parameters=Dict([]), kwargs...)
     type = read(fid["type"])
     if occursin("sparse", lowercase(type))
         # If matrix is sparse then load as sparse matrix
-        rows = read(fid["rows"])
-        cols = read(fid["cols"])
-        vals = read(fid["vals"])
-        nrows = read(fid["nrows"])
-        ncols = read(fid["ncols"])
-        # matrix = sparse(rows, cols, vals, nrows, ncols)
-        matrix = sparse(cols, rows, vals, ncols, nrows)'  # Load as CSR matrix
+        if occursin("vector", lowercase(type))
+            rows = read(fid["rows"])
+            vals = read(fid["vals"])
+            nrows = read(fid["nrows"])
+            matrix = sparsevec(rows, vals, nrows)
+        else
+            rows = read(fid["rows"])
+            cols = read(fid["cols"])
+            vals = read(fid["vals"])
+            nrows = read(fid["nrows"])
+            ncols = read(fid["ncols"])
+            # matrix = sparse(rows, cols, vals, nrows, ncols)
+            matrix = sparse(cols, rows, vals, ncols, nrows)'  # Load as CSR matrix
+        end
     else
         # If matrix is dense then load as dense matrix
         matrix = read(fid["matrix"])
