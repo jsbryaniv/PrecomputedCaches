@@ -40,7 +40,7 @@ function precomputed_save(self, matrix, matrixname; parameters=Dict([]), kwargs.
     verbose = self.verbose
 
     # Set up savename
-    name = get_savename(name, parameters=parameters, kwargs...)
+    name = get_savename(name; parameters=parameters, kwargs...)
 
     # Check if directory exists
     if !(name in readdir(path))
@@ -80,7 +80,7 @@ function precomputed_load(self, matrixname; parameters=Dict([]), kwargs...)
     verbose = self.verbose
 
     # Set up savename
-    name = get_savename(name, parameters=parameters, kwargs...)
+    name = get_savename(name; parameters=parameters, kwargs...)
     
     # Check if matrix is in path
     matrix = nothing
