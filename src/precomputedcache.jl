@@ -31,6 +31,26 @@ function get_savename(basename; parameters=Dict([]), kwargs...)
     return name
 end
 
+## Define check function ##
+function precomputed_check_existence(self, matrixname; parameters=Dict([]), kwargs...)
+    
+    # Get attributes
+    path = self.path
+    name = self.name
+    verbose = self.verbose
+
+    # Set up savename
+    matrixname = get_savename(matrixname; parameters=parameters, kwargs...)
+    
+    # Check if matrix is in path
+    if in(name, readdir(path))
+        if in(matrixname*".h5", readdir("$(path)$(name)"))
+            return true
+        end
+    end
+    return false
+end
+
 ## Define save function ##
 function precomputed_save(self, matrix, matrixname; parameters=Dict([]), kwargs...)
             
@@ -135,26 +155,6 @@ function precomputed_load(self, matrixname; parameters=Dict([]), kwargs...)
     return matrix
 end
 
-## Define check function ##
-function precomputed_check_existence(self, matrixname; parameters=Dict([]), kwargs...)
-    
-    # Get attributes
-    path = self.path
-    name = self.name
-    verbose = self.verbose
-
-    # Set up savename
-    matrixname = get_savename(matrixname; parameters=parameters, kwargs...)
-    
-    # Check if matrix is in path
-    if in(name, readdir(path))
-        if in(matrixname*".h5", readdir("$(path)$(name)"))
-            return true
-        end
-    end
-    return false
-end
-
 ### Precomputed ###
 mutable struct PrecomputedCache
     name::String
@@ -186,14 +186,14 @@ mutable struct PrecomputedCache
         self.name = name
         self.path = path
         self.verbose = verbose
+        self.check_existence = function (matrixname; parameters=Dict([]), kwargs...)
+            precomputed_check_existence(self, matrixname; parameters=parameters, kwargs...)
+        end
         self.save = function (matrix, matrixname; parameters=Dict([]), kwargs...)
             precomputed_save(self, matrix, matrixname; parameters=parameters, kwargs...)
         end
         self.load = function (matrixname; parameters=Dict([]), kwargs...)
             precomputed_load(self, matrixname; parameters=parameters, kwargs...)
-        end
-        self.check_existence = function (matrixname; parameters=Dict([]), kwargs...)
-            precomputed_check_existence(self, matrixname; parameters=parameters, kwargs...)
         end
 
         return self
