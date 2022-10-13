@@ -91,15 +91,19 @@ function precomputed_load(self, matrixname; parameters=Dict([]), kwargs...)
     matrixname = get_savename(matrixname; parameters=parameters, kwargs...)
     
     # Check if matrix is in path
-    matrix = nothing
-    if in(name, readdir(path))
-        if in(matrixname*".h5", readdir("$(path)$(name)"))
-            @goto found_matrix
-        end
+    if !(self.check_existence(matrixname))
+        verbose ? println("Could not find precomputed matrix: $(matrixname) from $(name)") : nothing
+        return nothing
     end
-    verbose ? println("Could not find precomputed matrix: $(matrixname) from $(name)") : nothing
-    return nothing
-    @label found_matrix
+    # matrix = nothing
+    # if in(name, readdir(path))
+    #     if in(matrixname*".h5", readdir("$(path)$(name)"))
+    #         @goto found_matrix
+    #     end
+    # end
+    # verbose ? println("Could not find precomputed matrix: $(matrixname) from $(name)") : nothing
+    # return nothing
+    # @label found_matrix
 
     # Load matrix
     fid = h5open("$(path)$(name)/$(matrixname).h5", "r")
@@ -131,6 +135,25 @@ function precomputed_load(self, matrixname; parameters=Dict([]), kwargs...)
     return matrix
 end
 
+## Define check function ##
+function precomputed_check_existence(self, matrixname; parameters=Dict([]), kwargs...)
+    
+    # Get attributes
+    path = self.path
+    name = self.name
+    verbose = self.verbose
+
+    # Set up savename
+    matrixname = get_savename(matrixname; parameters=parameters, kwargs...)
+    
+    # Check if matrix is in path
+    if in(name, readdir(path))
+        if in(matrixname*".h5", readdir("$(path)$(name)"))
+            return true
+        end
+    end
+    return false
+end
 
 ### Precomputed ###
 mutable struct PrecomputedCache
@@ -168,6 +191,9 @@ mutable struct PrecomputedCache
         end
         self.load = function (matrixname; parameters=Dict([]), kwargs...)
             precomputed_load(self, matrixname; parameters=parameters, kwargs...)
+        end
+        self.check_existence = function (matrixname; parameters=Dict([]), kwargs...)
+            precomputed_check_existence(self, matrixname; parameters=parameters, kwargs...)
         end
 
         return self
