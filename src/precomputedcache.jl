@@ -111,7 +111,7 @@ function precomputed_load(self, matrixname; parameters=Dict([]), kwargs...)
     matrixname = get_savename(matrixname; parameters=parameters, kwargs...)
     
     # Check if matrix is in path
-    if !(self.check_existence(matrixname))
+    if !(self.check(matrixname))
         verbose ? println("Could not find precomputed matrix: $(matrixname) from $(name)") : nothing
         return nothing
     end
@@ -159,6 +159,7 @@ end
 mutable struct PrecomputedCache
     name::String
     path::String
+    check::Function
     save::Function
     load::Function
     verbose::Bool
@@ -186,7 +187,7 @@ mutable struct PrecomputedCache
         self.name = name
         self.path = path
         self.verbose = verbose
-        self.check_existence = function (matrixname; parameters=Dict([]), kwargs...)
+        self.check = function (matrixname; parameters=Dict([]), kwargs...)
             precomputed_check_existence(self, matrixname; parameters=parameters, kwargs...)
         end
         self.save = function (matrix, matrixname; parameters=Dict([]), kwargs...)
